@@ -30,8 +30,7 @@
             <div class="col s12 m12">
                 <div class="card">
                     <div class="card-content white" id="main-card">
-                        <span class="new badge right" data-badge-caption="">new</span>
-                        <span class="card-title center">Click</span>
+                        <span class="card-title center">Word definition will be shown here</span>
                     </div>
                 </div>
             </div>
@@ -39,6 +38,7 @@
     </div>
     <script>
         const all_words = $(".all-words");
+        const scroll_effect = $(".scroll-effect");
 
         // Add words in database
         all_words.on('click', '#add-word', function () {
@@ -117,9 +117,9 @@
             });
         });
 
-        $('.all-words').scroll(function () {
+        all_words.scroll(function () {
             const loading_check = $("#done");
-            if (!$('.scroll-effect').data("loading")) {
+            if (!scroll_effect.data("loading")) {
                 if ($(this).scrollTop() + $(this).height() - 36.1 >= $('.scroll-effect').height()) {
                     console.log('rnining');
                     const count = all_words.attr("id");
@@ -130,13 +130,13 @@
                         },
                         beforeSend: function (xhr) {
                             console.log('yes');
-                            $(".scroll-effect").after($("<li class='loading'>Loading...</li>").fadeIn('slow')).data("loading", true);
+                            scroll_effect.after($("<li class='loading'>Loading...</li>").fadeIn('slow')).data("loading", true);
                         },
                         type: 'GET', // This is the default though, you don't actually need to always mention it
                         success: function (data) {
                             console.log('completed');
                             for (let i = 0; i < data['words'].length; i++) {
-                                $('.scroll-effect').append('<div class="card">\n' +
+                                scroll_effect.append('<div class="card">\n' +
                                     '               <div class="card-content teal white-text">\n' +
                                     '                  <a href="javascript:void(0);" style="color: white;" id="delete-word"><i\n' +
                                     '                    class="material-icons right">delete</i></a>\n' +
@@ -149,7 +149,7 @@
                                     '                        </div>\n' +
                                     '                    </div>')
                             }
-                            $(".scroll-effect").removeData("loading");
+                            scroll_effect.removeData("loading");
                             all_words.attr('id', data['key'] + '-' + data['count'])
                         },
                         failure: function (data) {
