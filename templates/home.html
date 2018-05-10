@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block largepagecontent %}
+    <div class="row">
+        <div class="col s12 m4">
+            <div style="overflow-y: auto;max-height: 650px;" class="all-saved-words">
+                <p style="font-size:1.63em">New Words</p>
+                {% for word in saved_word %}
+                    <div class="card">
+                        <div class="card-content teal white-text">
+                            <a href="javascript:void(0);" style="color: white;" name="{{ word.word }}" id="delete-word"><i
+                                    class="material-icons right">close</i></a>
+                            <span class="new badge right" data-badge-caption="">{{ word.created_at }}</span>
+                            <span class="card-title">{{ word.word }}</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="col s12 m8">
+            <p style="font-size:1.5em">Dictionary</p>
+            {% for letter in letters %}
+                <div class="col s12 m3">
+                    <a href="/{{ letter.letter }}" class="tooltipped" data-tooltip="Total count: {{ letter.count }}">
+                        <div class="card">
+                            <div class="card-content black white-text">
+                                <span class="card-title center">{{ letter.letter }}</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <script>
+        const all_saved_words = $('.all-saved-words');
+        $(document).ready(function () {
+            $('.tooltipped').tooltip();
+        });
+        all_saved_words.on('click', '#delete-word', function () {
+            $(this).parent().removeClass('teal').addClass('red');
+            const word = $(this).attr('name');
+            const card = $(this).parent();
+            $.ajax({
+                url: '/delete-word',
+                data: {
+                    'word': word,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                type: 'POST', // This is the default though, you don't actually need to always mention it
+                success: function (data) {
+                    card.fadeOut();
+                    M.toast({html: 'Successfully removed'});
+                    console.log(data);
+                },
+                failure: function (data) {
+                    M.toast({html: 'There is some error !'})
+                }
+            });
+        });
+    </script>
+{% endblock %}

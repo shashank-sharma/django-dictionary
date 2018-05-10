@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% block largepagecontent %}
+    <div class="row">
+        <div class="col s12 m4">
+            <div style="overflow-y: auto;max-height: 650px;" class="all-words" id="{{ key }}-20">
+                <div class="scroll-effect">
+                    <h5>Letter - {{ key }}</h5>
+                    {% for i in words %}
+                        <div class="card">
+                            <div class="card-content teal white-text">
+                                <a href="javascript:void(0);" style="color: white;" id="delete-word"><i
+                                        class="material-icons right">delete</i></a>
+                                <a href="javascript:void(0);" style="color: white;" name="word-{{ i.lower }}"
+                                   id="add-word"><i
+                                        class="material-icons right">add</i></a>
+                                <span class="card-title">{{ i }}</span>
+                                <a class="btn-floating halfway-fab waves-effect waves-light red" id="search-word"
+                                   name="word-{{ i.lower }}"><i
+                                        class="material-icons">search</i></a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="loading" id="done">
+
+                </div>
+            </div>
+        </div>
+        <div class="col s12 m8">
+            <div class="col s12 m12">
+                <div class="card">
+                    <div class="card-content white" id="main-card">
+                        <span class="new badge right" data-badge-caption="">new</span>
+                        <span class="card-title center">Click</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const all_words = $(".all-words");
+
+        // Add words in database
+        all_words.on('click', '#add-word', function () {
+            const card = $(this).parent();
+            const dustbin_logo = $(this);
+            const word = $(this).attr('name');
+            card.removeClass('teal').addClass('green');
+
+            dustbin_logo.hide();
+            $.ajax({
+                url: '/add-word',
+                data: {
+                    'word': word,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                type: 'POST', // This is the default though, you don't actually need to always mention it
+                success: function (data) {
+                    card.removeClass('black').addClass('green');
+                    M.toast({html: 'Successfully added !'});
+                    console.log(data);
+                },
+                failure: function (data) {
+                    $(this).parent().removeClass('teal').addClass('red');
+                    M.toast({html: 'There is some error !'})
+                }
+            });
+        });
+
+        // To delete the word (hide in this case)
+        all_words.on('click', '#delete-word', function () {
+            $(this).parent().removeClass('teal').addClass('red');
+            M.toast({html: 'Given word is hidden !'});
+            $(this).parent().fadeOut();
+        });
+
+        // Search meaning for that word
+        all_words.on('click', '#search-word', function () {
+            const oldClass = $('.black');
+            const card = $(this).parent();
+            const mainCard = $('#main-card');
+            const word = $(this).attr('name');
+
+            oldClass.removeClass('black').addClass('blue');
+            card.removeClass('teal').addClass('black');
+            mainCard.html('<div class="preloader-wrapper small active">' +
+                '<div class="spinner-layer spinner-green-only">' +
+                '<div class="circle-clipper left">' +
+                '<div class="circle"></div>' +
+                '</div><div class="gap-patch">' +
+                '<div class="circle"></div>' +
+                '</div><div class="circle-clipper right">' +
+                '<div class="circle"></div>' +
+                '</div>' +
+                '</div>' +
+                '</div>');
+
+            $.ajax({
+                url: '/search-word',
+                data: {
+                    'word': word,
+                },
+                type: 'GET', // This is the default though, you don't actually need to always mention it
+                success: function (data) {
+                    let main_body = '<ol>';
+                    for (let i = 0; i < data['data'].length; i++) {
+                        main_body += '<li><b>Definition: </b>' + data['data'][i]['definition'] + '</li>';
+                        main_body += '<i>Example: </i>' + data['data'][i]['example'];
+                    }
+                    mainCard.html('<h3>' + data["word"] + '</h3>' + main_body);
+                    console.log(data);
+                },
+                failure: function (data) {
+                    $(this).parent().removeClass('teal').addClass('red');
+                    M.toast({html: 'There is some error !'})
+                }
+            });
+        });
+
+        $('.all-words').scroll(function () {
+            const loading_check = $("#done");
+            if (!$('.scroll-effect').data("loading")) {
+                if ($(this).scrollTop() + $(this).height() - 36.1 >= $('.scroll-effect').height()) {
+                    console.log('rnining');
+                    const count = all_words.attr("id");
+                    setTimeout($.ajax({
+                        url: '/get-word',
+                        data: {
+                            'count': count,
+                        },
+                        beforeSend: function (xhr) {
+                            console.log('yes');
+                            $(".scroll-effect").after($("<li class='loading'>Loading...</li>").fadeIn('slow')).data("loading", true);
+                        },
+                        type: 'GET', // This is the default though, you don't actually need to always mention it
+                        success: function (data) {
+                            console.log('completed');
+                            for (let i = 0; i < data['words'].length; i++) {
+                                $('.scroll-effect').append('<div class="card">\n' +
+                                    '               <div class="card-content teal white-text">\n' +
+                                    '                  <a href="javascript:void(0);" style="color: white;" id="delete-word"><i\n' +
+                                    '                    class="material-icons right">delete</i></a>\n' +
+                                    '                  <a href="javascript:void(0);" style="color: white;" name="word-' + data['words'][i].toLowerCase() + '" id="add-word"><i\n' +
+                                    '                    class="material-icons right">add</i></a>\n' +
+                                    '                  <span class="card-title">' + data['words'][i] + '</span>\n' +
+                                    '                            <a class="btn-floating halfway-fab waves-effect waves-light red" id="search-word"\n' +
+                                    '                               name="word-' + data['words'][i].toLowerCase() + '"><i\n' +
+                                    '                                    class="material-icons">search</i></a>\n' +
+                                    '                        </div>\n' +
+                                    '                    </div>')
+                            }
+                            $(".scroll-effect").removeData("loading");
+                            all_words.attr('id', data['key'] + '-' + data['count'])
+                        },
+                        failure: function (data) {
+                            $(this).parent().removeClass('teal').addClass('red');
+                            M.toast({html: 'There is some error !'})
+                        }
+                    }), 3000);
+                }
+            }
+        });
+    </script>
+{% endblock %}
