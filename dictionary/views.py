@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from .models import Word
 import requests
 import json
-
+import os
 
 def home(request):
     with open('dictionary.json') as f:
@@ -50,32 +50,32 @@ def delete_word(request):
 def search_word(request):
     word = request.GET.get('word')[5:]
     data = {'data': [], 'message': False}
-    # try:
-    app_id = 'ce053322'
-    app_key = '97f2ad6147410dcd235c522fb4a83157'
-    language = 'en'
-    url = 'https://od-api.oxforddictionaries.com/api/v1/entries/' + language + '/' + word
-    r = requests.get(url, headers={'app_id': app_id, 'app_key': app_key})
-    if r.status_code == 200:
-        json_data = json.loads(r.text)
-        print(json_data)
-        for senses in json_data['results'][0]['lexicalEntries'][0]['entries'][0]['senses']:
-            temp_data = {}
-            if 'definitions' in senses:
-                temp_data['definition'] = senses['definitions'][0]
-            else:
-                continue
-            if 'examples' in senses:
-                temp_data['example'] = senses['examples'][0]['text']
-            else:
-                temp_data['example'] = 'None'
-            data['data'].append(temp_data)
-        data['message'] = True
-        data['word'] = json_data['results'][0]['word']
-    else:
-        data['word'] = 'No meaning Found'
-    # except:
-    #     data['message'] = False
+    try:
+        app_id = os.environ['APP_ID']
+        app_key = os.environ['APP_KEY']
+        language = 'en'
+        url = 'https://od-api.oxforddictionaries.com/api/v1/entries/' + language + '/' + word
+        r = requests.get(url, headers={'app_id': app_id, 'app_key': app_key})
+        if r.status_code == 200:
+            json_data = json.loads(r.text)
+            print(json_data)
+            for senses in json_data['results'][0]['lexicalEntries'][0]['entries'][0]['senses']:
+                temp_data = {}
+                if 'definitions' in senses:
+                    temp_data['definition'] = senses['definitions'][0]
+                else:
+                    continue
+                if 'examples' in senses:
+                    temp_data['example'] = senses['examples'][0]['text']
+                else:
+                    temp_data['example'] = 'None'
+                data['data'].append(temp_data)
+            data['message'] = True
+            data['word'] = json_data['results'][0]['word']
+        else:
+            data['word'] = 'No meaning Found'
+    except:
+        data['message'] = False
 
     return JsonResponse(data)
 
