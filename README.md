@@ -6,9 +6,14 @@ Live version: [Site](http://django-dictionary.herokuapp.com/)
 
 Sample Django web app which will show words on the basis of letter and show their meanings.
 
-1. Clicking on a letter will show all words related to that word.
-2. Option to add and remove words.
-3. Reopening the application will show words.
+### 1. Clicking on a letter will show all words related to that word.
+<img src="https://imgur.com/ywoBmF7.gif">
+### 2. Get meaning of any specific word
+<img src="https://imgur.com/rOMKuRX.gif">
+### 3. Hide or save any word on click
+<img src="https://imgur.com/AOVCSsR.gif">
+### 4. View saved words or remove them
+<img src="https://i.imgur.com/kUL7lma.gif">
 
 Obviously the usability is not final but the core concept which is used for creating this web app was quite simple and used to achieve the given steps only.
 
